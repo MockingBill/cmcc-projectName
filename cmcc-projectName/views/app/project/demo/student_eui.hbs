@@ -1,0 +1,320 @@
+<div class="row">
+    <div class="col-xs-12 col-md-12">
+        <div class="widget">
+            <div class="widget-body">
+                <div id="toolbar" class="row tbRow">
+                    <div class="col-xs-6 col-md-6">
+                        <div class="btn-group" role="group" aria-label="...">
+                            <button type="button" class="btn btn-default" onclick="openPage('新增数据', '', doAdd)" data-title="新增">
+                                <i class="fa fa-plus"></i> 新增
+                            </button>
+                            <button type="button" class="btn btn-default" onclick="toEdit()" data-title="修改">
+                                <i class="fa fa-edit"></i> 修改
+                            </button>
+                            <button type="button" class="btn btn-default" onclick="doDel()">
+                                <i class="fa fa-trash-o"></i> 删除
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-xs-6 col-md-6 text-right">
+                        <form id="searchFrom" class="form-inline">
+                            <div class="form-group">
+                                <div class="input-group">
+                                    <input type="input" id="sname" name="sname" class="form-control" placeholder="姓名">
+                                    <span class="input-group-btn">
+                                        <button class="btn btn-default" type="button" onclick="doSearch()"><i class="fa fa-search"></i>查询</button>
+                                        <!--<button class="btn btn-default" type="button" onclick="doClear()"><i class="fa fa-mail-reply"></i>清空</button>-->
+                                    </span>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                <div id="cc" class="easyui-layout" data-options="fit:true,border:false" style="width: 800px; height:536px;background-color: #fbfbfb;">
+                    <div data-options="region:'center',border:false" style="overflow-x:hidden;overflow-y:hidden">
+                        <table id="simpledatatable">
+
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal -->
+<div id="myModal" class="mydialog">
+    <div class="row">
+        <div class="col-md-12">
+            <div>
+                <form id="studentForm" class="form-horizontal form-bordered" role="form">
+                    <div class="form-group">
+                        <label for="inputNo" class="col-sm-2 control-label no-padding-right">工号</label>
+                        <div class="col-sm-9">
+                            <input type="text" class="easyui-validatebox form-control" data-options="required:true" style="width:60%" name="stu_no" id="inputNo" placeholder="请输入工号">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="inputName" class="col-sm-2 control-label no-padding-right">姓名</label>
+                        <div class="col-sm-9">
+                            <input type="text" class="easyui-validatebox form-control" data-options="required:true" style="width:60%" name="stu_name" id="inputName" placeholder="请输入姓名">
+                            <input type="hidden" name="_id" id="inputId">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="inputMobile" class="col-sm-2 control-label no-padding-right">手机</label>
+                        <div class="col-sm-9">
+                            <input type="text" class="easyui-validatebox form-control" data-options="required:true" style="width:60%" name="stu_mobile" id="inputMobile" placeholder="请输入手机号码">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="inputSex" class="col-sm-2 control-label no-padding-right">性别</label>
+                        <div class="col-sm-9">
+                            <select  name="stu_sex" id="inputSex" class="easyui-combobox" data-options="required:true,editable:false,panelHeight:50" style="width:70px;height:34px;">
+                                <option value="1">男</option>
+                                <option value="0">女</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="inputAge" class="col-sm-2 control-label no-padding-right">年龄</label>
+                        <div class="col-sm-9">
+                            <input type="text" class="easyui-validatebox form-control" data-options="required:true" name="stu_age" id="inputAge" placeholder="请输入年龄" style="width:40%">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="inputStatus" class="col-sm-2 control-label no-padding-right">状态</label>
+                        <div class="col-sm-9">
+                            <select  name="stu_status" id="inputStatus" class="easyui-combobox" data-options="required:true,editable:false,panelHeight:50" style="width:70px;height:34px;">
+                                <option value="1">在职</option>
+                                <option value="0">离职</option>
+                            </select>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+
+    // 关闭窗口
+    function closeDialog() {
+        $('#myModal').dialog('close');
+        clear();
+    }
+    // 打开页面
+    function openPage(title, value, callback) {
+        $('#myModal').show();
+        $('#myModal').mydialog({
+            title:title,
+            width: 700,
+            height: 500,
+            top:100,
+            modal: true,
+            myButtons:[
+                {
+                    text:'确定',
+                    btnCls:'btn btn-blue',
+                    handler:function(){
+                        callback(value);
+                    }
+                },
+                {
+                    text:'关闭',
+                    btnCls:'btn btn-danger',
+                    handler:function(){
+                        closeDialog();
+                    }
+                }
+            ]
+        });
+    }
+    $(document).ready(function() {
+
+        $(function(){
+            $('#simpledatatable').datagrid({
+                url:'{{projcfg.appurl}}/api/demo/student/eui',
+                method:'get',
+                rownumbers:true,
+                //autoRowHeight:true,
+                striped:true,
+                fitColumns:true,
+                toolbar: '#toolbar',
+                fit:true,
+                border:true,
+                singleSelect:true,
+                selectOnCheck:false,
+                //checkOnSelect:true,
+                columns:[[
+                    {field:'_id',checkbox:true},
+                    {"field": "stu_no","title":"工号","width":25},
+                    {"field": "stu_name","title":"姓名","width":20},
+                    {"field": "stu_mobile","title":"手机","width":15},
+                    {"field": "stu_sex","title":"性别","width":20,
+                        "formatter":function (data,rowData,rowIndex) {
+                            return data == 1 ? '男' : '女';
+                        }
+                    },
+                    {"field": "stu_age","title":"年龄","width":15,
+                        "formatter":function (data,rowData,rowIndex) {
+                            var sReturn = data + '岁';
+                            return sReturn;
+                        }
+                    },
+                    {"field": "stu_status","title":"状态","width":15,
+                        "formatter":function (data,rowData,rowIndex) {
+                            return data == 1 ? '在职' : '离职';
+                        }
+                    }
+                    /*,
+                    {
+                        "field": "ops","title":"操作",
+                        "formatter":function (value, rowData,rowIndex) {
+                            var data = rowData._id;
+                            // 增加编辑和删除按钮
+                            var editBtn = '<a href="javascript:toEdit(\''+data+'\')" class="btn btn-info btn-xs edit"><i class="fa fa-edit"></i> 修改</a>';
+                            var delBtn = '<a href="javascript:doDel(\''+data+'\')" class="btn btn-danger btn-xs delete"><i class="fa fa-trash-o"></i> 删除</a>';
+                            return editBtn + '&nbsp;' + delBtn;
+                        }
+                    }*/
+                ]],
+                onDblClickRow:function(rowIndex, rowData){
+                    //doEdit(1,rowIndex,rowData);
+                },
+                onLoadSuccess:function(json) {
+                    if(!json.success) {
+                        msgError(json.msg + ',错误代码:' + json.code);
+                    }
+                },
+                onLoadError:function() {
+                    msgError('加载数据出现时发生错误,请稍候重试...');
+                },
+                pagination:true,
+                loadMsg:'正在加载...'
+            });
+        });
+    });
+    function doSearch() {
+        $('#simpledatatable').datagrid('reload',{'name':$('#sname').val()});
+    }
+    function doClear() {
+        $('#sname').val('');
+        doSearch();
+    }
+    // 新增数据
+    function doAdd(value) {//alert($('#studentForm').serializeJson());
+
+        // 验证表单
+        var validate = $('#studentForm').form('validate');
+        if(!validate) {
+            return false;
+        }
+        $.ajax({
+            url: '{{projcfg.appurl}}/api/demo/student',
+            type: 'post',
+            data: $('#studentForm').serializeJson(),
+            success: function (data) {
+                if(data.success) {
+                    msgSuccess(data.msg);
+                    closeDialog();
+                    doSearch();
+                }
+                else {
+                    msgError(data.msg+',错误代码:'+data.code);
+                }
+            }
+        });
+    }
+
+    // 打开修改页面
+    function toEdit() {
+
+        // 获得选择行
+        var rows = $('#simpledatatable').datagrid('getChecked');
+        if (rows.length != 1) {
+            msgError('提示,请选择一条数据再进行修改');
+            return false;
+        }
+        var id = rows[0]._id;
+        openPage("修改数据", id, doEdit);
+        // 获取远程数据
+        $.ajax({
+            url: '{{projcfg.appurl}}/api/demo/student/'+id,
+            type: 'get',
+            data: {
+
+            }, success: function (data) {
+                if(data.success) {
+                    $('#studentForm').form('load',data.data[0]);
+                }
+                else {
+                    msgError(data.msg+',错误代码:'+data.code);
+                }
+            }
+        });
+    }
+    // 修改数据
+    function doEdit(value) {
+
+        // 验证表单
+        var validate = $('#studentForm').form('validate');
+        if(!validate) {
+            return false;
+        }
+
+        $.ajax({
+            url: '{{projcfg.appurl}}/api/demo/student/'+value,
+            type: 'put',
+            data: $('#studentForm').serializeJson(),
+            success: function (data) {
+                if(data.success) {
+                    msgSuccess(data.msg);
+                    closeDialog();
+                    doSearch();
+                    clear();
+                }
+                else {
+                    msgError(data.msg+',错误代码:'+data.code);
+                }
+            }
+        });
+    }
+    // 删除数据
+    function doDel() {
+
+        // 获得选择行
+        var rows = $('#simpledatatable').datagrid('getChecked');
+        if (rows.length != 1) {
+            msgError('提示,请选择一条数据再进行删除');
+            return false;
+        }
+        var id = rows[0]._id;
+
+        msgConfirm('确定删除此条记录？',function(result){
+            if(result){
+                // 获取远程数据
+                $.ajax({
+                    url: '{{projcfg.appurl}}/api/demo/student/'+id,
+                    type: 'delete',
+                    data: {
+                    },
+                    success: function (data) {
+                        if(data.success) {
+                            msgSuccess(data.msg);
+                            doSearch();
+                        }
+                        else {
+                            msgError(data.msg+',错误代码:'+data.code);
+                        }
+                    }
+                });
+            }
+        });
+    }
+    // 清空新增表单数据
+    function clear() {
+        $('#studentForm').form('clear');
+    }
+
+</script>

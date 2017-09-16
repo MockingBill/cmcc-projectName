@@ -1,0 +1,224 @@
+<div id="allTable" class="easyui-tabs" >
+
+    <div title="贵州" id="guizhou" style="padding:10px"></div>
+    <div title="贵阳" id="guiyang" style="padding:10px"></div>
+    <div title="遵义" id="zunyi"  style="padding:10px"></div>
+    <div title="安顺" id="anshun" style="padding:10px"></div>
+    <div title="黔南" id="qiannan" style="padding:10px"></div>
+    <div title="黔东南" id="qiandongnan" style="padding:10px"></div>
+    <div title="铜仁" id="tongren" style="padding:10px"></div>
+    <div title="毕节" id="bijie" style="padding:10px"></div>
+    <div title="六盘水" id="liupanshui" style="padding:10px"></div>
+    <div title="黔西南" id="qianxinan" style="padding:10px"></div>
+
+</div>
+
+<div  id="canva">
+    <div class="row">
+        <div class="col-xs-4 col-md-4">
+            <div id="canvasDiv1" style="margin: 20px 0px 20px 0px; " align="center" ></div>
+        </div>
+        <div class="col-xs-4 col-md-4">
+            <div id="canvasDiv2" style="margin: 20px 0px 20px 0px; " align="center" ></div>
+        </div>
+        <div class="col-xs-4 col-md-4">
+            <div id="canvasDiv3" style="margin: 20px 0px 20px 0px; " align="center" ></div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-xs-4 col-md-4">
+            <div id="canvasDiv4" style="margin: 20px 0px 20px 0px; " align="center" ></div>
+        </div>
+        <div class="col-xs-4 col-md-4">
+            <div id="canvasDiv5" style="margin: 20px 0px 20px 0px; " align="center" ></div>
+        </div>
+        <div class="col-xs-4 col-md-4">
+            <div id="canvasDiv6" style="margin: 20px 0px 20px 0px; " align="center" ></div>
+        </div>
+    </div>
+</div>
+
+<script>
+
+    $(document).ready(function () {
+
+        $('#canva').hide();
+
+    });
+
+    /**
+     * 当前页面的table选择时间，分别获取9个县市和‘贵州’所以的页面，默认为‘贵州’
+     * 当点击某个地点时，默认加载当前地市的参数值
+     * */
+    $('#allTable').tabs({
+        border:false,
+        onSelect:function(title){
+            var diArr=['#guizhou','#guiyang','#zunyi','#anshun','#qiannan','#qiandongnan',
+                '#tongren','#bijie','#liupanshui','#qianxinan'];
+            for(var i in diArr){
+                $(diArr[i]).empty();
+            }
+
+            //选择的当前页面的地点参数值title，后台用areaId获取
+            switch (title){
+                case "贵州":{
+                    $('#guizhou').prepend($('#canva').html());
+                    break;
+                }
+                case "贵阳":{
+                    $('#guiyang').prepend($('#canva').html());
+                    break;
+                }
+                case "遵义":{
+                    $('#zunyi').prepend($('#canva').html());
+                    break;
+                }
+                case "安顺":{
+                    $('#anshun').prepend($('#canva').html());
+                    break;
+                }
+                case "黔南":{
+                    $('#qiannan').prepend($('#canva').html());
+                    break;
+                }
+                case "黔东南":{
+                    $('#qiandongnan').prepend($('#canva').html());
+                    break;
+                }
+                case "铜仁":{
+                    $('#tongren').prepend($('#canva').html());
+                    break;
+                }
+                case "毕节":{
+                    $('#bijie').prepend($('#canva').html());
+                    break;
+                }
+                case "六盘水":{
+                    $('#liupanshui').prepend($('#canva').html());
+                    break;
+                }
+                case "黔西南":{
+                    $('#qianxinan').prepend($('#canva').html());
+                    break;
+                }
+
+            }
+            /**
+             * 请求获取天的参数
+             * */
+
+            $.ajax({
+                url: '{{projcfg.appurl}}/api/migu/migu_route/getDay',
+                type: 'get',
+                data: {area:title},
+                success: function (data) {
+                    if(data.success){
+
+                        //分别画得字段的图
+                        draw(roundArgForDay(data.data.rt_httpsuccrate),1,'HTTP访问成功率(100%)');
+                        draw(roundArgForDay(data.data.rt_httpavgresptime),2,'HTTP平均响应时延(ms)');
+                        draw(roundArgForDay1(data.data.rt_httpdlrate),3,'HTTP平均下载速率(M/s)');
+
+                        msgSuccess(data.code + data.msg);
+                    }else {
+                        msgError(data.code + '加载数据错误');
+                    }
+                }
+            });
+
+            /**
+             * 请求获取月的参数值
+             * */
+            $.ajax({
+                url: '{{projcfg.appurl}}/api/migu/migu_route/getMon',
+                type: 'get',
+                data: {area:title},
+                success: function (data) {
+                    if(data.success){
+
+                        draw(roundArgForMon(data.data.rt_httpsuccrate),4,'HTTP访问成功率(100%)');
+                        draw(roundArgForMon(data.data.rt_httpavgresptime),5,'HTTP平均响应时延(ms)');
+                        draw(roundArgForMon1(data.data.rt_httpdlrate),6,'HTTP平均下载速率(M/s)');
+                        msgSuccess(data.code + data.msg);
+                    }else {
+                        msgError(data.code + '加载数据错误');
+                    }
+                }
+            });
+
+        }
+    });
+
+
+    /**
+     * 画柱状图，出入数据data，图形标记num，和选择的字段名
+     * @param data
+     * @param num
+     * @param title
+     */
+    function draw(data,num,title) {
+        var len = Math.max(data.value);
+        new iChart.Column2D({
+            render : 'canvasDiv'+num,
+            data:data,
+            title : title,
+            width : 300,
+            height : 250,
+            coordinate:{
+                background_color:'#fefefe',
+                scale:[{
+                    position:'left',
+                    start_scale:0,
+                    end_scale:len,
+                    scale_space:len/10,
+                    listeners:{
+                        parseText:function(x,y,z){
+                            return {text:x }
+                        }
+                    }
+                }]
+            }
+        }).draw();
+    }
+
+    //转换获取的name和value，使之转换为整数型时间和参数值，并且标记时间为天
+    function roundArgForDay (obj) {
+        for(var i=0;i<obj.length;i++){
+            obj[i].name =  Math.round(obj[i].name)+'日';
+            obj[i].value =  Math.round(obj[i].value);
+
+        }
+        return obj
+    }
+
+    //转换获取的name和value，使之转换为整数型时间和参数值，并且标记时间为月
+    function roundArgForMon (obj) {
+        for(var i=0;i<obj.length;i++){
+            obj[i].name =  Math.round(obj[i].name)+'月';
+            obj[i].value =  Math.round(obj[i].value);
+
+        }
+        return obj
+    }
+
+    //月时间的值后面添加“月”字样
+    function roundArgForMon1 (obj) {
+        for(var i=0;i<obj.length;i++){
+            obj[i].name =  Math.round(obj[i].name)+'月';
+
+        }
+        return obj
+    }
+
+    //月时间的值后面添加“天”字样
+    function roundArgForDay1 (obj) {
+        for(var i=0;i<obj.length;i++){
+            obj[i].name =  Math.round(obj[i].name)+'日';
+
+        }
+        return obj
+    }
+
+
+
+</script>
